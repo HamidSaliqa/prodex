@@ -5,6 +5,7 @@ import '../models/product.dart';
 import '../widgets/details/image_section.dart';
 import '../widgets/details/info_section.dart';
 import '../widgets/details/action_buttons_section.dart';
+import 'edit_product_screen.dart';
 
 /// صفحهٔ «Details» که وقتی کاربر روی کارت محصول کلیک می‌کند اینجا نمایش داده می‌شود.
 /// حالا با استفاده از LayoutBuilder و Flexible، بخش تصویر و محتوای متنی به صورت نسبتی از ارتفاع صفحه تنظیم شده‌اند تا روی صفحات کوچک از هم نریزند.
@@ -81,11 +82,11 @@ class DetailsScreen extends StatelessWidget {
                             },
                             onEdit: () {
                               // TODO: مثلاً به صفحهٔ ویرایش هدایت شود.
-                              // Navigator.of(context).push(
-                              //   MaterialPageRoute(
-                              //     builder: (_) => EditProductScreen(product: product),
-                              //   ),
-                              // );
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => EditProductScreen(product: product),
+                                ),
+                              );
                             },
                           ),
                         ],
