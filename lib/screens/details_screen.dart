@@ -2,33 +2,44 @@
 
 import 'package:flutter/material.dart';
 import '../models/product.dart';
+import '../data/db_helper.dart';
 import '../widgets/details/image_section.dart';
 import '../widgets/details/info_section.dart';
 import '../widgets/details/action_buttons_section.dart';
 import 'edit_product_screen.dart';
 
-/// صفحهٔ «Details» که وقتی کاربر روی کارت محصول کلیک می‌کند اینجا نمایش داده می‌شود.
-/// حالا با استفاده از LayoutBuilder و Flexible، بخش تصویر و محتوای متنی به صورت نسبتی از ارتفاع صفحه تنظیم شده‌اند تا روی صفحات کوچک از هم نریزند.
+/// صفحهٔ جزئیات محصول؛ شامل منطق حذف و ویرایش با نشانگر لودینگ
 class DetailsScreen extends StatelessWidget {
   final Product product;
 
   const DetailsScreen({Key? key, required this.product}) : super(key: key);
 
+  Future<void> _handleDelete(BuildContext context) async {
+    // نمایش دیالوگ لودینگ
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    // حذف از دیتابیس
+    await DbHelper.deleteProduct(product.id!);
+    // بستن دیالوگ و صفحهٔ Details
+    Navigator.of(context).pop(); // دیالوگ
+    Navigator.of(context).pop(); // DetailsScreen
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // اپ‌بار ساده با عنوان «Details»
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5F5F5),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          'Details',
+          'Product Details',
           style: TextStyle(
             color: Colors.black,
             fontSize: 18,
@@ -37,56 +48,39 @@ class DetailsScreen extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // ارتفاع کل صفحه بدون اپ‌بار و SafeArea را داریم
             final totalHeight = constraints.maxHeight;
-
             return Column(
               children: [
-                // ----------------------------------------------------
-                // تصویر محصول: 30% از ارتفاع موجود
-                // ----------------------------------------------------
                 SizedBox(
                   height: totalHeight * 0.3,
                   width: double.infinity,
                   child: ImageSection(imageUrl: product.imageUrl),
                 ),
-
-                // ----------------------------------------------------
-                // بقیهٔ محتوا (InfoSection و ActionButtonsSection) داخل Expanded و SingleChildScrollView
-                // تا اگر محتوای متنی زیاد بود، اسکرول بخورد.
-                // ----------------------------------------------------
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 20.0,
-                      ),
+                          horizontal: 16, vertical: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // بخش اطلاعات (تیتر و ردیف‌های info)
                           InfoSection(product: product),
-
                           const SizedBox(height: 32),
-
-                          // دکمه‌های Delete / Edit
                           ActionButtonsSection(
-                            onDelete: () {
-                              // TODO: منطق حذف محصول را اینجا پیاده کنید
-                            },
+                            onDelete: () => _handleDelete(context),
                             onEdit: () {
-                              // TODO: مثلاً به صفحهٔ ویرایش هدایت شود.
-                              Navigator.of(context).push(
+                              Navigator.of(context)
+                                  .push(
                                 MaterialPageRoute(
-                                  builder: (_) => EditProductScreen(product: product),
+                                  builder: (_) =>
+                                      EditProductScreen(product: product),
                                 ),
-                              );
+                              )
+                                  .then((_) => Navigator.of(context).pop());
                             },
                           ),
                         ],
