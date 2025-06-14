@@ -2,12 +2,11 @@
 
 import 'package:flutter/material.dart';
 
-/// ویجت بخش «Add» (دکمهٔ نهایی)
+/// ویجت بخش «Add» (دکمهٔ نهایی) با قابلیت غیرفعال شدن
 class AddButtonSection extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
-  const AddButtonSection({Key? key, required this.onPressed})
-      : super(key: key);
+  const AddButtonSection({Key? key, this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +15,7 @@ class AddButtonSection extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: onPressed != null ? Colors.blue : Colors.grey,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
