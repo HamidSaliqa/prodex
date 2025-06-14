@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// ویجت دکمه‌های انتهای صفحهٔ Edit: «Cancel» و «Update»
 class EditActionButtonsSection extends StatelessWidget {
   final VoidCallback onCancel;
-  final VoidCallback onUpdate;
+  final VoidCallback? onUpdate;
 
   const EditActionButtonsSection({
     Key? key,
