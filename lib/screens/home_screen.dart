@@ -1,17 +1,19 @@
 // lib/screens/home_screen.dart
-import 'package:flutter/material.dart';
-import 'package:prodex/data/db_helper.dart';
-import 'package:prodex/models/product.dart';
-import 'package:prodex/screens/add_product_screen.dart';
-import 'package:prodex/screens/details_screen.dart';
-import 'package:prodex/widgets/home/search_bar_custom.dart';
-import 'package:prodex/widgets/home/header_with_button.dart';
-import 'package:prodex/widgets/home/product_card.dart';
 
+import 'package:flutter/material.dart';
+import '../data/db_helper.dart';
+import '../models/product.dart';
+import '../screens/add_product_screen.dart';
+import '../screens/details_screen.dart';
+import '../widgets/home/search_bar_custom.dart';
+import '../widgets/home/header_with_button.dart';
+import '../widgets/home/product_card.dart';
+import '../widgets/utils/app_spacing.dart';
+
+/// صفحهٔ اصلی: نمایش لیست محصولات از SQLite
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  @override State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -24,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadProducts() async {
-    // ← از کلاس DbHelper و متد getProducts استفاده کن
     final list = await DbHelper.getProducts();
     setState(() => products = list);
   }
@@ -35,42 +36,36 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              const SizedBox(height: 12),
+              AppSpacing.v12,
               SearchBarCustom(
-                onTextChanged: (text) { /* TODO */ },
-                onFilterPressed: () { /* TODO */ },
+                onTextChanged: (t) {},
+                onFilterPressed: () {},
               ),
-              const SizedBox(height: 24),
+              AppSpacing.v24,
               HeaderWithButton(
                 onAddPressed: () {
                   Navigator.of(context)
-                      .push(MaterialPageRoute(
-                    builder: (_) => const AddProductScreen(),
-                  ))
+                      .push(MaterialPageRoute(builder: (_) => const AddProductScreen()))
                       .then((_) => _loadProducts());
                 },
               ),
-              const SizedBox(height: 16),
+              AppSpacing.v16,
               Expanded(
                 child: products.isEmpty
                     ? const Center(child: Text('No products available'))
                     : ListView.separated(
                   physics: const BouncingScrollPhysics(),
                   itemCount: products.length,
-                  separatorBuilder: (_, __) =>
-                  const SizedBox(height: 16),
+                  separatorBuilder: (_, __) => AppSpacing.v16,
                   itemBuilder: (ctx, i) {
                     final p = products[i];
                     return GestureDetector(
                       onTap: () {
                         Navigator.of(context)
-                            .push(MaterialPageRoute(
-                          builder: (_) =>
-                              DetailsScreen(product: p),
-                        ))
+                            .push(MaterialPageRoute(builder: (_) => DetailsScreen(product: p)))
                             .then((_) => _loadProducts());
                       },
                       child: ProductCard(product: p),
