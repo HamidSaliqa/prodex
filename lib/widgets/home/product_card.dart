@@ -1,5 +1,6 @@
 // lib/widgets/home/product_card.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 
@@ -22,9 +23,7 @@ class ProductCard extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
-            // ------------------------------------------------------------
-            // تصویر محصول (اگر imageUrl خالی باشد، Placeholder می‌زنیم)
-            // ------------------------------------------------------------
+            // تصویر محصول
             Container(
               width: 80,
               height: 80,
@@ -33,38 +32,17 @@ class ProductCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.black12),
               ),
-              child: product.imageUrl.isEmpty
-                  ? const Center(
-                child: Text(
-                  'Photo',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
-                  : ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  product.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                  const Center(
-                      child: Text(
-                        'Photo',
-                        style: TextStyle(color: Colors.grey),
-                      )),
-                ),
-              ),
+              child: _buildImage(),
             ),
 
             const SizedBox(width: 12),
 
-            // ------------------------------------------------------------
-            // جزئیات محصول (نام، قیمت فروش، دسته‌بندی، تعداد و وضعیت)
-            // ------------------------------------------------------------
+            // جزئیات محصول
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // نام و قیمت فروش (قرمز)
+                  // نام و قیمت فروش
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -143,6 +121,26 @@ class ProductCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (product.imageUrl.isNotEmpty) {
+      final file = File(product.imageUrl);
+      if (file.existsSync()) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            file,
+            width: 80,
+            height: 80,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    }
+    return const Center(
+      child: Icon(Icons.image, color: Colors.grey),
     );
   }
 }
