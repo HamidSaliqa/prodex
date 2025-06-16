@@ -1,9 +1,11 @@
 // lib/widgets/details/image_section.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// ویجت «بخش تصویر» در صفحه جزئیات
-/// نمایش تصویر از روی یک URL یا Asset
+/// بخشی برای نمایش تصویر محصول در صفحهٔ جزئیات
+/// اگر مسیر تصویر محلی موجود و فایل واقعی باشد، آن را نمایش می‌دهد
+/// در غیر این صورت، یک placeholder نشان می‌دهد
 class ImageSection extends StatelessWidget {
   final String imageUrl;
 
@@ -11,33 +13,34 @@ class ImageSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // مسیر تصویر خالی نیست و فایل وجود دارد؟
+    if (imageUrl.isNotEmpty) {
+      final file = File(imageUrl);
+      if (file.existsSync()) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            file,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+        );
+      }
+    }
+
+    // اگر تصویر موجود نباشد یا فایل نیابد، placeholder
     return Container(
-      height: 180,
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(8),
       ),
-      clipBehavior: Clip.hardEdge,
-      child: imageUrl.isEmpty
-          ? const Center(
-        child: Text(
-          'Image',
-          style: TextStyle(color: Colors.grey),
+      child: const Center(
+        child: Icon(
+          Icons.image,
+          size: 48,
+          color: Colors.grey,
         ),
-      )
-          : Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          // اگر بارگذاری تصویر شکست خورد، متن جایگزین نشان داده شود
-          return const Center(
-            child: Text(
-              'Image',
-              style: TextStyle(color: Colors.grey),
-            ),
-          );
-        },
       ),
     );
   }
