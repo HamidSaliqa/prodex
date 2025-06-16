@@ -1,5 +1,7 @@
 // lib/screens/add_product_screen.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:prodex/widgets/utils/app_spacing.dart';
 import '../models/product.dart';
@@ -28,6 +30,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _sellingPriceController  = TextEditingController();
   final _quantityController      = TextEditingController();
 
+  File? _imageFile;
   String? _selectedCategory;
   bool   _isAvailable = true;
   bool   _isQuantity  = true;
@@ -47,7 +50,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       isAvailable:   _isAvailable,
       quantity:      _isQuantity ? int.tryParse(_quantityController.text) ?? 0 : 0,
       weight:        !_isQuantity ? double.tryParse(_quantityController.text) ?? 0 : 0,
-      imageUrl:      '',
+      imageUrl:_imageFile?.path ?? '',
     );
     await DbHelper.addProduct(p);
     await Future.delayed(const Duration(seconds: 1)); // افزایش زمان لودینگ
@@ -88,7 +91,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: ListView(
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  ImagePickerSection(onTap: () {}),
+                  ImagePickerSection(
+                    imagePath: _imageFile?.path,
+                    onImageSelected: (path) => setState(() => _imageFile = File(path)),
+                  ),
                   AppSpacing.v24,
                   NameFieldSection(nameController: _nameController),
                   AppSpacing.v20,
