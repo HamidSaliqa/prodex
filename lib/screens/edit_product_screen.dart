@@ -1,5 +1,6 @@
 // lib/screens/edit_product_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../data/db_helper.dart';
@@ -14,7 +15,7 @@ import '../widgets/add_product/quantity_weight_field.dart';
 import '../widgets/utils/app_spacing.dart';
 import '../widgets/utils/constants.dart';
 
-/// صفحهٔ ویرایش محصول با Overlay لودینگ و ویجت‌های مشترک
+/// صفحهٔ ویرایش محصول؛ شامل پیش‌نمایش و انتخاب تصویر جدید، و overlay لودینگ
 class EditProductScreen extends StatefulWidget {
   final Product product;
   const EditProductScreen({Key? key, required this.product}) : super(key: key);
@@ -24,47 +25,33 @@ class EditProductScreen extends StatefulWidget {
 }
 
 class _EditProductScreenState extends State<EditProductScreen> {
-  late final _nameController = TextEditingController(text: widget.product.name);
-  late final _purchaseController = TextEditingController(text: widget.product.purchasePrice.toString());
-  late final _sellingController  = TextEditingController(text: widget.product.sellingPrice.toString());
-  late final _quantityController = TextEditingController(
-    text: widget.product.quantity > 0 ? widget.product.quantity.toString() : widget.product.weight.toString(),
-  );
+  late final TextEditingController _nameController     =
+  TextEditingController(text: widget.product.name);
+  late final TextEditingController _purchaseController =
+  TextEditingController(text: widget.product.purchasePrice.toString());
+  late final TextEditingController _sellingController  =
+  TextEditingController(text: widget.product.sellingPrice.toString());
+  late final TextEditingController _quantityController =
+  TextEditingController(
+      text: widget.product.quantity > 0
+          ? widget.product.quantity.toString()
+          : widget.product.weight.toString());
 
-  String? _selectedCategory = '';
-  bool _isAvailable = true;
-  bool _isQuantity  = true;
-  bool _isLoading   = false;
+  String? _selectedCategory;
+  bool   _isAvailable = true;
+  bool   _isQuantity  = true;
+  bool   _isLoading   = false;
+
+  File? _imageFile;
 
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.product.category;
-    _isAvailable = widget.product.isAvailable;
-    _isQuantity  = widget.product.quantity > 0;
-  }
-
-  void _handleUpdate() {
-    setState(() => _isLoading = true);
-    _saveUpdatedProduct();
-  }
-
-  Future<void> _saveUpdatedProduct() async {
-    final updated = Product(
-      id:           widget.product.id,
-      name:         _nameController.text,
-      category:     _selectedCategory ?? '',
-      purchasePrice: double.tryParse(_purchaseController.text) ?? 0,
-      sellingPrice:  double.tryParse(_sellingController.text)  ?? 0,
-      isAvailable:   _isAvailable,
-      quantity:      _isQuantity ? int.tryParse(_quantityController.text) ?? 0 : 0,
-      weight:        !_isQuantity ? double.tryParse(_quantityController.text) ?? 0 : 0,
-      imageUrl:      widget.product.imageUrl,
-    );
-    await DbHelper.editProduct(updated);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _isLoading = false);
-    Navigator.of(context).pop();
+    final p = widget.product;
+    _selectedCategory = p.category;
+    _isAvailable      = p.isAvailable;
+    _isQuantity       = p.quantity > 0;
+    _imageFile        = p.imageUrl.isNotEmpty ? File(p.imageUrl) : null;
   }
 
   @override
@@ -74,6 +61,34 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _sellingController.dispose();
     _quantityController.dispose();
     super.dispose();
+  }
+
+  void _handleUpdate() {
+    setState(() => _isLoading = true);
+    _saveUpdatedProduct();
+  }
+
+  Future<void> _saveUpdatedProduct() async {
+    final updated = Product(
+      id:             widget.product.id,
+      name:           _nameController.text,
+      category:       _selectedCategory ?? '',
+      purchasePrice:  double.tryParse(_purchaseController.text) ?? 0,
+      sellingPrice:   double.tryParse(_sellingController.text)  ?? 0,
+      isAvailable:    _isAvailable,
+      quantity:       _isQuantity
+          ? int.tryParse(_quantityController.text) ?? 0
+          : 0,
+      weight:         !_isQuantity
+          ? double.tryParse(_quantityController.text) ?? 0
+          : 0,
+      imageUrl:       _imageFile?.path ?? widget.product.imageUrl,
+    );
+
+    await DbHelper.editProduct(updated);
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() => _isLoading = false);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -88,7 +103,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
         ),
         title: const Text(
           'Edit Product',
-          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
       backgroundColor: Colors.white,
@@ -99,7 +118,10 @@ class _EditProductScreenState extends State<EditProductScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               physics: const BouncingScrollPhysics(),
               children: [
-                ImagePickerSection(onTap: () {}),
+                ImagePickerSection(
+                  imagePath: _imageFile?.path,
+                  onImageSelected: (path) => setState(() => _imageFile = File(path)),
+                ),
                 AppSpacing.v24,
                 NameFieldSection(nameController: _nameController),
                 AppSpacing.v20,
