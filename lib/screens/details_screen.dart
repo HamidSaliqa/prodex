@@ -1,15 +1,16 @@
 // lib/screens/details_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../data/db_helper.dart';
 import '../widgets/common/primary_button.dart';
-import '../widgets/details/image_section.dart';
 import '../widgets/details/info_section.dart';
+import '../widgets/details/image_section.dart';
 import '../widgets/utils/app_spacing.dart';
 import 'edit_product_screen.dart';
 
-/// صفحهٔ جزئیات محصول با دکمه‌های حذف و ویرایش استاندارد
+/// صفحهٔ جزئیات محصول؛ شامل نمایش تصویر، اطلاعات و دکمه‌های Delete/Edit
 class DetailsScreen extends StatelessWidget {
   final Product product;
   const DetailsScreen({Key? key, required this.product}) : super(key: key);
@@ -21,8 +22,8 @@ class DetailsScreen extends StatelessWidget {
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
     await DbHelper.deleteProduct(product.id!);
-    Navigator.of(context).pop(); // دیالوگ
-    Navigator.of(context).pop(); // صفحهٔ Details
+    Navigator.of(context).pop(); // بستن دیالوگ
+    Navigator.of(context).pop(); // بستن DetailsScreen
   }
 
   @override
@@ -37,26 +38,32 @@ class DetailsScreen extends StatelessWidget {
         ),
         title: const Text(
           'Product Details',
-          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
+          style: TextStyle(
+              color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500
+          ),
         ),
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (ctx, constraints) {
-            final h = constraints.maxHeight;
+            final totalHeight = constraints.maxHeight;
             return Column(
               children: [
+                // تصویر محصول (30% ارتفاع)
                 SizedBox(
-                  height: h * 0.3,
+                  height: totalHeight * 0.3,
                   width: double.infinity,
                   child: ImageSection(imageUrl: product.imageUrl),
                 ),
+                // اطلاعات و دکمه‌ها
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 20
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -71,9 +78,12 @@ class DetailsScreen extends StatelessWidget {
                             label: 'Edit',
                             onPressed: () {
                               Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                builder: (_) => EditProductScreen(product: product),
-                              ))
+                                  .push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      EditProductScreen(product: product),
+                                ),
+                              )
                                   .then((_) => Navigator.of(context).pop());
                             },
                           ),
