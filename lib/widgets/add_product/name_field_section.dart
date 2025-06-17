@@ -1,13 +1,15 @@
-// lib/widgets/add_product/name_field_section.dart
-
 import 'package:flutter/material.dart';
 
-/// ویجت بخش «Product Name»
+/// بخش فیلد نام محصول با پشتیبانی از validator
 class NameFieldSection extends StatelessWidget {
   final TextEditingController nameController;
+  final String? Function(String?)? validator;
 
-  const NameFieldSection({Key? key, required this.nameController})
-      : super(key: key);
+  const NameFieldSection({
+    Key? key,
+    required this.nameController,
+    this.validator,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,22 +17,17 @@ class NameFieldSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Products Name',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          'Product Name',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: nameController,
+          validator: validator,
           decoration: InputDecoration(
-            hintText: 'Products Name',
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            hintText: 'Enter product name',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             isDense: true,
           ),
         ),

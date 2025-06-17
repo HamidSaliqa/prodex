@@ -1,34 +1,40 @@
-// lib/widgets/add_product/quantity_weight_field.dart
-
 import 'package:flutter/material.dart';
 
-/// ویجت فیلد «Quantity یا Weight»
-/// isQuantity: اگر true باشد، متن hint «Quantity» وگرنه «Weight» نمایش داده می‌شود.
-/// controller: کنترلر مربوط به TextField
+/// فیلد ورودی Quantity یا Weight با پشتیبانی از validator
 class QuantityWeightField extends StatelessWidget {
   final bool isQuantity;
   final TextEditingController controller;
+  final String? Function(String?)? validator;
 
   const QuantityWeightField({
     Key? key,
     required this.isQuantity,
     required this.controller,
+    this.validator,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        hintText: isQuantity ? 'Quantity' : 'Weight',
-        contentPadding:
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isQuantity ? 'Quantity' : 'Weight',
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         ),
-        isDense: true,
-      ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          validator: validator,
+          keyboardType: TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            hintText: isQuantity ? 'Enter quantity' : 'Enter weight',
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            isDense: true,
+          ),
+        ),
+      ],
     );
   }
 }

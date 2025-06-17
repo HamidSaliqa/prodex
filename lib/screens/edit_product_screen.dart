@@ -1,21 +1,19 @@
-// lib/screens/edit_product_screen.dart
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../data/db_helper.dart';
+import 'package:prodex/widgets/utils/app_spacing.dart';
+import '../widgets/utils/constants.dart';
 import '../widgets/common/category_picker.dart';
 import '../widgets/common/primary_button.dart';
 import '../widgets/add_product/image_picker_section.dart';
-import '../widgets/add_product/name_field_section.dart';
-import '../widgets/add_product/price_fields_section.dart';
+import '../widgets/add_product/name_field_section.dart';             // با پشتیبانی از validator
+import '../widgets/add_product/price_fields_section.dart';          // با پشتیبانی از validator
 import '../widgets/add_product/availability_section.dart';
 import '../widgets/add_product/unit_type_section.dart';
-import '../widgets/add_product/quantity_weight_field.dart';
-import '../widgets/utils/app_spacing.dart';
-import '../widgets/utils/constants.dart';
+import '../widgets/add_product/quantity_weight_field.dart';         // با پشتیبانی از validator
 
-/// صفحهٔ ویرایش محصول؛ شامل پیش‌نمایش و انتخاب تصویر جدید، و overlay لودینگ
+/// صفحهٔ ویرایش محصول با Form‐based validation
 class EditProductScreen extends StatefulWidget {
   final Product product;
   const EditProductScreen({Key? key, required this.product}) : super(key: key);
@@ -25,33 +23,35 @@ class EditProductScreen extends StatefulWidget {
 }
 
 class _EditProductScreenState extends State<EditProductScreen> {
-  late final TextEditingController _nameController     =
+  // کلید فرم
+  final _formKey = GlobalKey<FormState>();
+
+  // کنترلرها با مقادیر اولیه
+  late final _nameController     =
   TextEditingController(text: widget.product.name);
-  late final TextEditingController _purchaseController =
+  late final _purchaseController =
   TextEditingController(text: widget.product.purchasePrice.toString());
-  late final TextEditingController _sellingController  =
+  late final _sellingController  =
   TextEditingController(text: widget.product.sellingPrice.toString());
-  late final TextEditingController _quantityController =
-  TextEditingController(
+  late final _quantityController = TextEditingController(
       text: widget.product.quantity > 0
           ? widget.product.quantity.toString()
           : widget.product.weight.toString());
 
+  File?   _imageFile;
   String? _selectedCategory;
-  bool   _isAvailable = true;
-  bool   _isQuantity  = true;
-  bool   _isLoading   = false;
-
-  File? _imageFile;
+  bool    _isAvailable = true;
+  bool    _isQuantity  = true;
+  bool    _isLoading   = false;
 
   @override
   void initState() {
     super.initState();
     final p = widget.product;
+    _imageFile        = p.imageUrl.isNotEmpty ? File(p.imageUrl) : null;
     _selectedCategory = p.category;
     _isAvailable      = p.isAvailable;
     _isQuantity       = p.quantity > 0;
-    _imageFile        = p.imageUrl.isNotEmpty ? File(p.imageUrl) : null;
   }
 
   @override
@@ -63,7 +63,17 @@ class _EditProductScreenState extends State<EditProductScreen> {
     super.dispose();
   }
 
+  /// هنگام فشردن Update، ابتدا اعتبارسنجی می‌کنیم
   void _handleUpdate() {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('لطفاً یک دسته‌بندی انتخاب کنید'))
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     _saveUpdatedProduct();
   }
@@ -71,17 +81,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Future<void> _saveUpdatedProduct() async {
     final updated = Product(
       id:             widget.product.id,
-      name:           _nameController.text,
-      category:       _selectedCategory ?? '',
-      purchasePrice:  double.tryParse(_purchaseController.text) ?? 0,
-      sellingPrice:   double.tryParse(_sellingController.text)  ?? 0,
+      name:           _nameController.text.trim(),
+      category:       _selectedCategory!,
+      purchasePrice:  double.parse(_purchaseController.text),
+      sellingPrice:   double.parse(_sellingController.text),
       isAvailable:    _isAvailable,
-      quantity:       _isQuantity
-          ? int.tryParse(_quantityController.text) ?? 0
-          : 0,
-      weight:         !_isQuantity
-          ? double.tryParse(_quantityController.text) ?? 0
-          : 0,
+      quantity:       _isQuantity ? int.parse(_quantityController.text) : 0,
+      weight:         !_isQuantity ? double.parse(_quantityController.text) : 0,
       imageUrl:       _imageFile?.path ?? widget.product.imageUrl,
     );
 
@@ -94,83 +100,104 @@ class _EditProductScreenState extends State<EditProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // =========== AppBar ===========
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5F5F5),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: const BackButton(color: Colors.black),
         title: const Text(
           'Edit Product',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
         ),
       ),
+
       backgroundColor: Colors.white,
       body: Stack(
         children: [
           SafeArea(
-            child: ListView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              physics: const BouncingScrollPhysics(),
-              children: [
-                ImagePickerSection(
-                  imagePath: _imageFile?.path,
-                  onImageSelected: (path) => setState(() => _imageFile = File(path)),
-                ),
-                AppSpacing.v24,
-                NameFieldSection(nameController: _nameController),
-                AppSpacing.v20,
-                CategoryPicker(
-                  selected: _selectedCategory,
-                  options: Constants.categories,
-                  onSelected: (cat) => setState(() => _selectedCategory = cat),
-                ),
-                AppSpacing.v20,
-                PriceFieldsSection(
-                  purchaseController: _purchaseController,
-                  sellingController: _sellingController,
-                ),
-                AppSpacing.v20,
-                AvailabilitySection(
-                  isAvailable: _isAvailable,
-                  onChanged: (v) => setState(() => _isAvailable = v),
-                ),
-                AppSpacing.v20,
-                UnitTypeSection(
-                  isQuantity: _isQuantity,
-                  onChanged: (v) => setState(() => _isQuantity = v),
-                ),
-                AppSpacing.v12,
-                QuantityWeightField(
-                  isQuantity: _isQuantity,
-                  controller: _quantityController,
-                ),
-                AppSpacing.v32,
-                Row(
+              // پیچیدن در Form
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
                   children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        label: 'Cancel',
-                        onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                      ),
+                    // 1) عکس (اختیاری)
+                    ImagePickerSection(
+                      imagePath: _imageFile?.path,
+                      onImageSelected: (path) => setState(() => _imageFile = File(path)),
                     ),
-                    AppSpacing.v16,
-                    Expanded(
-                      child: PrimaryButton(
-                        label: 'Update',
-                        onPressed: _isLoading ? null : _handleUpdate,
-                      ),
+                    AppSpacing.v24,
+
+                    // 2) نام محصول (اجباری)
+                    NameFieldSection(
+                      nameController: _nameController,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Product name is required'
+                          : null,
+                    ),
+                    AppSpacing.v20,
+
+                    // 3) دسته‌بندی (اجباری)
+                    const Text('Category', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                    AppSpacing.v8,
+                    CategoryPicker(
+                      selected: _selectedCategory,
+                      options: Constants.categories,
+                      onSelected: (cat) => setState(() => _selectedCategory = cat),
+                    ),
+                    AppSpacing.v20,
+
+                    // 4) قیمت‌ها (اجباری)
+                    PriceFieldsSection(
+                      purchaseController: _purchaseController,
+                      sellingController: _sellingController,
+                      purchaseValidator: (v) => v == null || v.trim().isEmpty
+                          ? 'Purchase price is required'
+                          : null,
+                      sellingValidator: (v) => v == null || v.trim().isEmpty
+                          ? 'Selling price is required'
+                          : null,
+                    ),
+                    AppSpacing.v20,
+
+                    // 5) AvailabilitySection
+                    AvailabilitySection(
+                      isAvailable: _isAvailable,
+                      onChanged: (v) => setState(() => _isAvailable = v),
+                    ),
+                    AppSpacing.v20,
+
+                    // 6) UnitTypeSection
+                    UnitTypeSection(
+                      isQuantity: _isQuantity,
+                      onChanged: (v) => setState(() => _isQuantity = v),
+                    ),
+                    AppSpacing.v12,
+
+                    // 7) Quantity/Weight (اجباری)
+                    QuantityWeightField(
+                      isQuantity: _isQuantity,
+                      controller: _quantityController,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Quantity or weight is required'
+                          : null,
+                    ),
+                    AppSpacing.v32,
+
+                    // 8) دکمه Update
+                    PrimaryButton(
+                      label: 'Update',
+                      onPressed: _isLoading ? null : _handleUpdate,
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
+
+          // Overlay لودینگ
           if (_isLoading)
             Container(
               color: Colors.black45,
