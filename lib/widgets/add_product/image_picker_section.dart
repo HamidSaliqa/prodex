@@ -53,7 +53,7 @@ class ImagePickerSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.file(
               File(imagePath!),
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
               width: double.infinity,
               height: double.infinity,
             ),

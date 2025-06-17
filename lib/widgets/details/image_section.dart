@@ -21,7 +21,7 @@ class ImageSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Image.file(
             file,
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
             width: double.infinity,
             height: double.infinity,
           ),
