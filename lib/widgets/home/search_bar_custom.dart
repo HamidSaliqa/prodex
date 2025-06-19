@@ -1,19 +1,16 @@
-// lib/widgets/home/search_bar_custom.dart
-
 import 'package:flutter/material.dart';
 
-/// ویجت: نوار جستجو با آیکون جستجو و فیلتر
+/// یک نوار جست‌وجوی ساده با فیلتر
 class SearchBarCustom extends StatelessWidget {
-  /// وقتی متن وارد می‌شود این callback فراخوانی می‌شود
-  final ValueChanged<String>? onTextChanged;
-
-  /// وقتی آیکون فیلتر زده شود این callback فراخوانی می‌شود
-  final VoidCallback? onFilterPressed;
+  final ValueChanged<String> onTextChanged;
+  final VoidCallback onFilterPressed;
+  final String hintText;        // ← اضافه شد
 
   const SearchBarCustom({
     Key? key,
-    this.onTextChanged,
-    this.onFilterPressed,
+    required this.onTextChanged,
+    required this.onFilterPressed,
+    this.hintText = 'Search',    // ← مقدار پیش‌فرض
   }) : super(key: key);
 
   @override
@@ -21,7 +18,7 @@ class SearchBarCustom extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
@@ -31,16 +28,16 @@ class SearchBarCustom extends StatelessWidget {
           Expanded(
             child: TextField(
               onChanged: onTextChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search products',
+              decoration: InputDecoration(
+                hintText: hintText,        // ← اینجا استفاده می‌شود
                 border: InputBorder.none,
                 isDense: true,
               ),
             ),
           ),
           IconButton(
-            onPressed: onFilterPressed,
             icon: const Icon(Icons.filter_list, color: Colors.grey),
+            onPressed: onFilterPressed,
           ),
         ],
       ),
